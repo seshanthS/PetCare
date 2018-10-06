@@ -1,0 +1,26 @@
+pragma solidity ^0.4.24;
+
+contract petCare {
+
+    struct Case {
+        uint id;
+        string RegistereName;
+        string status;
+        address[] donaters;
+    }
+
+    Case[] public cases;
+    mapping (uint => mapping(address => uint)) amountByCase;
+
+    event donationReceived(address _from, uint _value, uint _caseId);
+    
+    function donate(uint _caseId) public payable {
+        amountByCase[_caseId][msg.sender] = msg.value;
+        emit donationReceived(msg.sender, msg.value, _caseId);
+        cases[_caseId].id += msg.value;
+    }    
+
+    function addCase(address _user, uint _caseId) public {
+        
+    }
+}
