@@ -1,4 +1,4 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.4.24;
 
 contract petCare {
     /*
@@ -27,9 +27,10 @@ contract petCare {
     
     /*@param caseId
       @param amount
+      @param address of receiver(ex. Vet, Hospital)
       @dev Total amount allowed to withdraw for a specific case
     */
-    mapping (uint => uint) amountAllowed;
+    mapping (uint => mapping(address => uint)) amountAllowed;
   
     uint id = 0;
     uint userId = 0;
@@ -39,13 +40,14 @@ contract petCare {
         _;
     }
     
+    /*  @dev Register the user.
+    */
     function registerUser() public returns (uint){
       //userId = uint8(uint256(keccak256(block.timestamp, block.difficulty)));
+      
+      //@dev Verify whether the user's address is already registerd.'
         for (uint i = 0; i <= userId; i++){
             require(users[i] != msg.sender);
-           /* if (users[i] == msg.sender){
-                revert();
-            */
             }
         users[userId] = msg.sender;
         userId++;
@@ -67,14 +69,20 @@ contract petCare {
         caseMap[_caseId].amount += msg.value;
     }
     
-    function authorize(uint _caseId, uint amount) private {
+    function authorize(uint _caseId, uint amount, address _to) public {
         require(amount <= donatedTocaseAmount[msg.sender][_caseId]);
-        amountAllowed[_caseId] += amount;
+        amountAllowed[_caseId][_to] += amount;
         
     }
     
-    function withdraw(){
-        
+    /* @param _caseId id of the caseMap
+        @param _amount amount to send in wei
+        @dev Called by the receiver(i.e doctor,hospital). Here msg.sender is the doctor, hospital etc  
+    */
+    function withdraw(uint _caseId, uint _amount) public {
+        require(_amount <= amountAllowed[_caseId][msg.sender]);
+        msg.sender.transfer(_amount);
+         
     }
     
     function contractBalance() public view returns (uint){
